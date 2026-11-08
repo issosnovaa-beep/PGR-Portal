@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<title>ПГР — партийный кабинет</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#0b1220;--panel:#121d30;--panel2:#19263b;--line:#263650;--text:#edf3fb;--muted:#91a2ba;--gold:#d8b56d;--blue:#6d9ee8;--green:#56c49a;--red:#e27c7c}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#111d30 0,#0b1220 280px);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+button,input,textarea,select{font:inherit}button{cursor:pointer}.app{max-width:760px;margin:auto;padding:18px 15px 100px}
+header{display:flex;align-items:center;gap:12px;padding:12px 2px 20px}.logo{width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#e3c47e,#98753c);color:#152033;display:grid;place-items:center;font-weight:900;font-size:18px;box-shadow:0 8px 24px #0005}
+.brand{flex:1}.brand b{display:block;font-size:17px;letter-spacing:.3px}.brand small{color:var(--muted)}.status{font-size:11px;color:var(--green);border:1px solid #285744;padding:5px 8px;border-radius:30px}
+h1{font-size:25px;line-height:1.15;margin:8px 0}.sub{color:var(--muted);margin:0 0 18px}
+.card{background:linear-gradient(145deg,#17243a,#111c2e);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 10px 30px #0002}
+.hero{border-color:#705d38;background:linear-gradient(120deg,#302b22,#17243a 72%);padding:20px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold);font-weight:700}
+.hero h2{font-size:22px;margin:7px 0}.hero p{color:#c0c9d6;margin:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{background:#ffffff08;border:1px solid #ffffff10;border-radius:14px;padding:13px}.stat strong{font-size:23px;display:block}.stat span{color:var(--muted);font-size:12px}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 8px}.section-title h3{font-size:16px;margin:0}.muted{color:var(--muted)}.small{font-size:12px}
+.item{padding:13px 0;border-top:1px solid var(--line)}.item:first-child{border-top:0}.item b{display:block}.item p{margin:5px 0;color:#b6c2d2;white-space:pre-wrap}.item time{font-size:11px;color:var(--muted)}
+.pill{display:inline-block;border:1px solid #3b506e;border-radius:30px;padding:3px 8px;font-size:11px;color:#b8cce9;margin:4px 4px 0 0}.btn{border:0;border-radius:12px;padding:11px 14px;background:var(--gold);color:#182235;font-weight:750}.btn.secondary{background:#263852;color:var(--text);border:1px solid #3a4d69}.btn.danger{background:#512c37;color:#ffd9dd}.btn:disabled{opacity:.5;cursor:not-allowed}.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+input,textarea,select{width:100%;background:#0d1727;border:1px solid #34445d;border-radius:11px;color:var(--text);padding:11px 12px;outline:none;margin:5px 0 11px}textarea{min-height:90px;resize:vertical}label{font-size:12px;color:var(--muted)}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hidden{display:none!important}
+nav{position:fixed;bottom:0;left:0;right:0;background:#0c1524ed;backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:5;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom))}
+.navinner{width:min(760px,100%);display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.navbtn{background:transparent;border:0;color:var(--muted);padding:7px 2px;border-radius:11px;font-size:10px}.navbtn span{display:block;font-size:18px;margin-bottom:2px}.navbtn.active{background:#263852;color:var(--gold)}
+.notice{padding:11px 13px;border-radius:12px;background:#25364e;color:#cbd9eb;font-size:13px;margin:10px 0}.error{background:#472a35;color:#ffd5dc}.success{background:#173d35;color:#baf2dd}
+.auth{max-width:440px;margin:8vh auto;padding:22px}.empty{text-align:center;padding:25px 10px;color:var(--muted)}
+.profileline{display:flex;justify-content:space-between;gap:12px;align-items:center}.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#34445d;color:var(--gold);font-weight:800}
+@media(min-width:600px){.app{padding-top:28px}.grid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div id="authView" class="app auth">
+  <header><div class="logo">ПГ</div><div class="brand"><b>Партия Государственного Развития</b><small>Внутренний цифровой кабинет</small></div></header>
+  <div class="card">
+    <div class="eyebrow">Добро пожаловать</div><h1>Вход в ПГР</h1>
+    <p class="sub">Используйте учётную запись, которую выдал администратор партии.</p>
+    <label>Email</label><input id="email" type="email" autocomplete="username" placeholder="name@example.com">
+    <label>Пароль</label><input id="password" type="password" autocomplete="current-password" placeholder="Пароль">
+    <button class="btn" style="width:100%" id="loginBtn">Войти</button>
+    <div id="authMsg" class="notice hidden"></div>
+    <p class="small muted">Регистрация членов проходит через государственную систему АНДИ. Этот кабинет предназначен для уже зарегистрированных участников ПГР.</p>
+  </div>
+</div>
+
+<div id="mainView" class="app hidden">
+<header>
+ <div class="logo">ПГ</div>
+ <div class="brand"><b>ПАРТИЯ ГОСУДАРСТВЕННОГО РАЗВИТИЯ</b><small>Цифровой партийный кабинет</small></div>
+ <span class="status">● онлайн</span>
+</header>
+<section class="hero">
+ <div class="eyebrow">Единство · Закон · Развитие</div>
+ <h2 id="hello">Добро пожаловать</h2>
+ <p>Внутреннее пространство ПГР для документов, заседаний и обращений.</p>
+</section>
+<div class="grid">
+ <div class="stat"><strong id="memberCount">—</strong><span>Членов партии</span></div>
+ <div class="stat"><strong id="meetingCount">—</strong><span>Заседаний</span></div>
+ <div class="stat"><strong id="proposalCount">—</strong><span>Предложений</span></div>
+ <div class="stat"><strong id="roleStat">—</strong><span>Ваша должность</span></div>
+</div>
+<div id="page-home">
+ <div class="section-title"><h3>Последние объявления</h3><span class="small muted">ПГР</span></div>
+ <div class="card" id="homeAnnouncements"><div class="empty">Загрузка…</div></div>
+ <div class="section-title"><h3>Ближайшие заседания</h3></div>
+ <div class="card" id="homeMeetings"><div class="empty">Загрузка…</div></div>
+</div>
+<div id="page-members" class="hidden">
+ <div class="section-title"><h3>Члены партии</h3><span class="small muted" id="membersTotal"></span></div>
+ <div id="membersList" class="card"></div>
+</div>
+<div id="page-docs" class="hidden">
+ <div class="section-title"><h3>Документы ПГР</h3></div>
+ <div id="docsList" class="card"></div>
+ <div class="section-title"><h3>Объявления</h3></div>
+ <div id="announcementsList" class="card"></div>
+</div>
+<div id="page-meetings" class="hidden">
+ <div class="section-title"><h3>Заседания</h3></div>
+ <div id="meetingsList" class="card"></div>
+</div>
+<div id="page-more" class="hidden">
+ <div class="section-title"><h3>Обращения и предложения</h3></div>
+ <div class="card">
+  <label>Тип обращения</label><select id="requestType"><option value="proposal">Предложение</option><option value="secretariat">Обращение в секретариат</option><option value="chairman">Обращение председателю</option></select>
+  <label>Тема</label><input id="requestTitle" maxlength="120" placeholder="Краткая тема">
+  <label>Текст</label><textarea id="requestBody" maxlength="4000" placeholder="Опишите обращение…"></textarea>
+  <button class="btn" id="sendRequest">Отправить</button><div id="requestMsg" class="notice hidden"></div>
+ </div>
+ <div class="section-title"><h3>Мои обращения</h3></div><div id="myRequests" class="card"></div>
+ <div class="section-title"><h3>Профиль</h3></div><div class="card" id="profileCard"></div>
+ <div class="btnrow"><button class="btn secondary" id="logoutBtn">Выйти из аккаунта</button></div>
+</div>
+<div id="adminPanel" class="hidden">
+ <div class="section-title"><h3>Панель управления</h3><span class="pill">Администрация</span></div>
+ <div class="card">
+  <label>Новое объявление</label><input id="annTitle" maxlength="150" placeholder="Заголовок"><textarea id="annBody" maxlength="5000" placeholder="Текст объявления"></textarea><button class="btn" id="addAnnouncement">Опубликовать</button>
+ </div>
+ <div class="card">
+  <label>Создать заседание</label><input id="meetTitle" maxlength="150" placeholder="Название заседания"><div class="formgrid"><div><label>Дата и время</label><input id="meetDate" type="datetime-local"></div><div><label>Место / формат</label><input id="meetPlace" placeholder="Например, Telegram"></div></div><textarea id="meetDesc" maxlength="3000" placeholder="Повестка и описание"></textarea><button class="btn" id="addMeeting">Создать заседание</button>
+ </div>
+ <div class="card">
+  <label>Добавить документ</label><input id="docTitle" maxlength="150" placeholder="Название документа"><input id="docUrl" type="url" placeholder="Ссылка на документ (https://…)"><textarea id="docDesc" maxlength="1000" placeholder="Краткое описание"></textarea><button class="btn" id="addDocument">Добавить документ</button>
+ </div>
+ <div class="card">
+  <label>Обращения, ожидающие рассмотрения</label><div id="adminRequests"></div>
+ </div>
+ <div id="adminMsg" class="notice hidden"></div>
+</div>
+</div>
+<nav id="nav" class="hidden"><div class="navinner">
+ <button class="navbtn active" data-page="home"><span>⌂</span>Главная</button>
+ <button class="navbtn" data-page="members"><span>♙</span>Состав</button>
+ <button class="navbtn" data-page="docs"><span>▤</span>Документы</button>
+ <button class="navbtn" data-page="meetings"><span>▦</span>Заседания</button>
+ <button class="navbtn" data-page="more"><span>☰</span>Ещё</button>
+</div></nav>
+<script>
+(() => {
+ const SUPABASE_URL = "ВСТАВЬТЕ_SUPABASE_URL";
+ const SUPABASE_ANON_KEY = "ВСТАВЬТЕ_SUPABASE_ANON_KEY";
+ const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("ВСТАВЬТЕ");
+ const $ = id => document.getElementById(id);
+ const tg = window.Telegram?.WebApp;
+ if (tg) { tg.ready(); tg.expand(); }
+ let db = null, user = null, profile = null;
+ const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const date = s => s ? new Date(s).toLocaleString('ru-RU',{dateStyle:'medium',timeStyle:'short'}) : 'Дата не указана';
+ const msg = (id,text,err=false) => { const el=$(id);el.textContent=text;el.classList.remove('hidden','error','success');el.classList.add(err?'error':'success'); };
+ const isAdmin = () => ['chairman','general_secretary','secretariat','admin'].includes(profile?.role);
+ const roleName = r => ({chairman:'Председатель партии',general_secretary:'Генеральный секретарь',secretariat:'Секретариат',admin:'Администратор',member:'Член партии'}[r] || r || 'Член партии');
+ async function init(){
+  if(!configured){ $('authMsg').textContent='Сначала укажите SUPABASE_URL и SUPABASE_ANON_KEY в начале файла.';$('authMsg').classList.remove('hidden');return; }
+  db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const {data:{session}}=await db.auth.getSession();
+  if(session) await enter(session.user);
+ }
+ async function enter(u){
+  user=u;
+  const {data:p,error}=await db.from('profiles').select('*').eq('id',u.id).single();
+  if(error || !p){ await db.auth.signOut(); msg('authMsg','Профиль не найден. Обратитесь к администратору ПГР.',true); return; }
+  profile=p; $('authView').classList.add('hidden');$('mainView').classList.remove('hidden');$('nav').classList.remove('hidden');
+  $('hello').textContent='Здравствуйте, '+(p.full_name || u.email || 'участник')+'!';
+  $('roleStat').textContent=roleName(p.role);
+  $('profileCard').innerHTML=`<div class="profileline"><div><b>${esc(p.full_name||'Без имени')}</b><div class="muted small">${esc(u.email||'')}</div></div><div class="avatar">${esc((p.full_name||'П')[0].toUpperCase())}</div></div><p><span class="pill">${esc(roleName(p.role))}</span><span class="pill">ПГР</span></p><div class="small muted">ID профиля: ${esc(p.id)}</div>`;
+  if(isAdmin()) $('adminPanel').classList.remove('hidden');
+  await refreshAll();
+ }
+ async function list(table,order='created_at',ascending=false){
+  const {data,error}=await db.from(table).select('*').order(order,{ascending}).limit(100);
+  if(error) throw error; return data||[];
+ }
+ function renderItems(rows,empty,kind){
+  if(!rows.length)return `<div class="empty">${empty}</div>`;
+  return rows.map(x=>{
+   let meta='',body='';
+   if(kind==='announcement'){meta=`<time>${date(x.created_at)}</time>`;body=`<p>${esc(x.body)}</p>`}
+   if(kind==='meeting'){meta=`<time>${date(x.starts_at)} · ${esc(x.place||'Формат не указан')}</time>`;body=`<p>${esc(x.description||'')}</p>`}
+   if(kind==='document'){meta=`<time>${date(x.created_at)}</time>`;body=`<p>${esc(x.description||'')}</p><a class="pill" href="${esc(x.url)}" target="_blank" rel="noopener">Открыть документ ↗</a>`}
+   return `<div class="item"><b>${esc(x.title)}</b>${meta}${body}</div>`;
+  }).join('');
+ }
+ async function refreshAll(){
+  try{
+   const [members,ann,meet,docs,requests]=await Promise.all([
+    db.from('profiles').select('id,full_name,role').order('full_name').limit(200),
+    list('announcements'),list('meetings','starts_at',true),list('documents'),db.from('requests').select('*').eq('user_id',user.id).order('created_at',{ascending:false})
+   ]);
+   if(members.error)throw members.error;if(requests.error)throw requests.error;
+   $('memberCount').textContent=members.data.length;$('meetingCount').textContent=meet.length;$('proposalCount').textContent=requests.data.filter(x=>x.type==='proposal').length;
+   $('membersTotal').textContent=members.data.length+' участников';
+   $('membersList').innerHTML=members.data.length?members.data.map(m=>`<div class="item"><b>${esc(m.full_name||'Участник')}</b><span class="pill">${esc(roleName(m.role))}</span></div>`).join(''):'<div class="empty">Список пока пуст</div>';
+   $('homeAnnouncements').innerHTML=renderItems(ann.slice(0,3),'Объявлений пока нет','announcement');
+   $('announcementsList').innerHTML=renderItems(ann,'Объявлений пока нет','announcement');
+   $('homeMeetings').innerHTML=renderItems(meet.slice(0,3),'Заседаний пока нет','meeting');
+   $('meetingsList').innerHTML=renderItems(meet,'Заседаний пока нет','meeting');
+   $('docsList').innerHTML=renderItems(docs,'Документов пока нет','document');
+   $('myRequests').innerHTML=requests.data.length?requests.data.map(x=>`<div class="item"><b>${esc(x.title)}</b><span class="pill">${esc(x.type)}</span><span class="pill">${esc(x.status)}</span><p>${esc(x.body)}</p><time>${date(x.created_at)}</time></div>`).join(''):'<div class="empty">Вы ещё не отправляли обращений</div>';
+   if(isAdmin()) await loadAdminRequests();
+  }catch(e){console.error(e);$('homeAnnouncements').innerHTML=`<div class="notice error">Не удалось загрузить данные: ${esc(e.message)}</div>`}
+ }
+ async function loadAdminRequests(){
+  const {data,error}=await db.from('requests').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
+  if(error){$('adminRequests').textContent=error.message;return}
+  $('adminRequests').innerHTML=data.length?data.map(x=>`<div class="item"><b>${esc(x.title)}</b><span class="pill">${esc(x.type)}</span><span class="pill">${esc(x.status)}</span><p>${esc(x.body)}</p><div class="small muted">${esc(x.profiles?.full_name||'Участник')} · ${date(x.created_at)}</div><div class="btnrow"><button class="btn secondary" data-status="in_review" data-id="${x.id}">На рассмотрении</button><button class="btn" data-status="resolved" data-id="${x.id}">Решено</button></div></div>`).join(''):'<div class="empty">Новых обращений нет</div>';
+  $('adminRequests').querySelectorAll('button[data-id]').forEach(b=>b.onclick=async()=>{const {error}=await db.from('requests').update({status:b.dataset.status}).eq('id',b.dataset.id);if(error)msg('adminMsg',error.message,true);else{msg('adminMsg','Статус обращения обновлён.');await refreshAll()}});
+ }
+ async function insert(table,obj){const {error}=await db.from(table).insert(obj);if(error)throw error;await refreshAll()}
+ $('loginBtn').onclick=async()=>{
+  if(!db){await init();if(!db)return}
+  const {data,error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+  if(error)msg('authMsg',error.message,true);else await enter(data.user);
+ };
+ $('logoutBtn').onclick=async()=>{await db.auth.signOut();location.reload()};
+ $('sendRequest').onclick=async()=>{
+  const title=$('requestTitle').value.trim(),body=$('requestBody').value.trim();
+  if(!title||!body){msg('requestMsg','Заполните тему и текст.',true);return}
+  try{await insert('requests',{user_id:user.id,type:$('requestType').value,title,body});$('requestTitle').value='';$('requestBody').value='';msg('requestMsg','Обращение отправлено.');}catch(e){msg('requestMsg',e.message,true)}
+ };
+ $('addAnnouncement').onclick=async()=>{try{await insert('announcements',{title:$('annTitle').value.trim(),body:$('annBody').value.trim(),created_by:user.id});$('annTitle').value='';$('annBody').value='';msg('adminMsg','Объявление опубликовано.')}catch(e){msg('adminMsg',e.message,true)}};
+ $('addMeeting').onclick=async()=>{try{await insert('meetings',{title:$('meetTitle').value.trim(),starts_at:new Date($('meetDate').value).toISOString(),place:$('meetPlace').value.trim(),description:$('meetDesc').value.trim(),created_by:user.id});$('meetTitle').value='';$('meetDesc').value='';msg('adminMsg','Заседание создано.')}catch(e){msg('adminMsg',e.message,true)}};
+ $('addDocument').onclick=async()=>{try{const url=$('docUrl').value.trim();if(!url.startsWith('https://'))throw new Error('Укажите безопасную ссылку https://');await insert('documents',{title:$('docTitle').value.trim(),url,description:$('docDesc').value.trim(),created_by:user.id});$('docTitle').value='';$('docUrl').value='';$('docDesc').value='';msg('adminMsg','Документ добавлен.')}catch(e){msg('adminMsg',e.message,true)}};
+ document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.navbtn').forEach(x=>x.classList.toggle('active',x===b));['home','members','docs','meetings','more'].forEach(p=>$('page-'+p).classList.toggle('hidden',p!==b.dataset.page));});
+ init();
+})();
+</script>
+</body></html>
